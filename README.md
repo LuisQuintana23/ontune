@@ -27,6 +27,8 @@
     cp ./.env.example ./.env
     ```
 
+__Nota__: Configurar .env y asignar valor a `JWT_SECRET`
+
 5. Crear base de datos
      ```sh
      npx sequelize-cli db:create
@@ -42,7 +44,7 @@
 
 8. Ejecutar aplicación
       ```sh
-      npm run up
+      npm run dev
       ```
 
 ## Instrucciones Desarrollo (frontend)
@@ -61,6 +63,11 @@
     ```sh
     npm install
     ```
+
+4. Ejecutar aplicación
+   ```sh
+   npm run dev
+   ```
 
 ## MySQL Docker (api)
 1. Instalar docker y entrar a la carpeta backend
