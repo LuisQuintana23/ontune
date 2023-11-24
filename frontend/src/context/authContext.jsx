@@ -18,9 +18,9 @@ export const AuthContextProvider = ({ children }) => {
   };
 
   //esta parte del código provoca que el usuario se establece automáticamente al cargar la aplicación mediante la llamada a login() dentro de useEffect en el AuthContextProvider. Esto significa que cada vez que el componente se monta o actualiza, el usuario se establecerá automáticamente, y es por eso que siempre te redirige al login.
-  useEffect(() => {
-    localStorage.setItem("user", JSON.stringify(currentUser));
-  }, [currentUser]);
+  /* useEffect(() => {
+     localStorage.setItem("user", JSON.stringify(currentUser));
+   }, [currentUser]); */
 
   useEffect(() => {
     // Establecer el usuario solo si no hay un usuario actual en el localStorage
