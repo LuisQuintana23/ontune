@@ -1,4 +1,4 @@
-import Login from "./pages/login/Login"
+import { Login } from "./pages/login/Login"
 import Register from "./pages/register/register"
 import {
   createBrowserRouter,
@@ -13,14 +13,15 @@ import Home from "./pages/home/home.jsx"
 import Profile from "./pages/profile/profile.jsx"
 import "./style.scss"
 import { useContext } from "react";
+import { useAuth } from "./context/authContext.jsx";
 import { DarkModeContext } from "./context/darkModeContext.jsx";
-import { AuthContext } from "./context/authContext.jsx";
 
 
 function App() {
 
-  const {currentUser} = useContext(AuthContext);
+  const auth = useAuth()
   const {darkMode} = useContext (DarkModeContext)
+
   const Layout = () => {
     return (
       <div className={`theme-${darkMode ? "dark" : "light"}`}>
@@ -37,7 +38,7 @@ function App() {
   };
 
   const ProtectedRoute = ({children}) => {
-    if(!currentUser){
+    if(!auth.isAuthenticated){
       return <Navigate to="/login"/>
     }
 
@@ -48,9 +49,10 @@ function App() {
     {
       path:"/",
       element: (
-      <ProtectedRoute>
-        <Layout/>
-      </ProtectedRoute>),
+        <ProtectedRoute>
+          <Layout/>
+        </ProtectedRoute>
+      ),
       children: [
         {
           path:"/",
@@ -61,7 +63,6 @@ function App() {
           element: <Profile/>
         },
       ]
-    
     },
     {
       path: "/login",

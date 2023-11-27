@@ -1,5 +1,6 @@
 import "./navbar.scss"
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import LogoutIcon from '@mui/icons-material/Logout';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import ViewAgendaOutlinedIcon from '@mui/icons-material/ViewAgendaOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
@@ -11,10 +12,34 @@ import WbSunnyOutlinedIcon from '@mui/icons-material/WbSunnyOutlined';
 import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { DarkModeContext } from "../../../context/darkModeContext.jsx";
+import { useAuth } from "../../../context/authContext.jsx";
+import axios from "axios";
+import {API_URL} from "../../../config/config.js";
 
 const NavBar = () => {
 
     const {toggle, darkMode} = useContext (DarkModeContext)
+    const auth = useAuth();
+
+    async function handleLogout(e){
+        e.preventDefault()
+
+        try{
+            const res = await axios({
+                url: 'http://localhost:8888/api/auth/logout',
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${auth.getRefreshToken()}`
+                }
+            })
+
+            if(res.status === 200){
+                auth.logout()
+            }
+        } catch(err) {
+            console.log(err)
+        }
+    }
     
     return (
         <div className="navbar">
@@ -41,7 +66,12 @@ const NavBar = () => {
             <PermIdentityOutlinedIcon className="item"/>
             <div className="user">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgBVhb_zZI2S4rt98hZp4i8bAgD3XE06_CAw&usqp=CAU" alt=""/>
-                <span>Usuario_Pricipal</span>
+                <span>{auth.getUser().username}</span>
+            </div>
+            <div>
+                <a onClick={handleLogout}>
+                    <LogoutIcon className="item" />
+                </a>
             </div>
             </div> 
         </div>

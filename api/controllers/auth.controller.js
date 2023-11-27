@@ -1,7 +1,9 @@
 //importar el modelo
 import User from "../models/User.js";
-import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
+import {createAcccessToken, createRefreshToken, getTokenFromHeader, verifyRefreshToken} from "../lib/auth/tokens.js";
+import {getUserInfo} from "../lib/auth/users.js";
+import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
     const params = req.body;
@@ -10,8 +12,11 @@ export const register = async (req, res) => {
 
     try {
         // crear al usuario con datos dados
-        if(password !== password_confirm){
-            return res.status(400).json({token: null, message: "contraseñas no coinciden"})
+        if( !!!username || !!!email || !!!password || !!!password_confirm ){
+            return res.status(400).json({message: "existen campos vacios"});
+        }
+        else if(password !== password_confirm){
+            return res.status(400).json({message: "las contraseñas no coinciden"})
         }
         else
         {
@@ -22,11 +27,9 @@ export const register = async (req, res) => {
                 updated_at: params.updated_at,
                 email: email
             })
-            // generar json web token para poder mantener su sesión activa
-            const token = jwt.sign({id: newUser.id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_TIME,})
 
             // solo el home se accesa cuando se tiene jwt
-            return res.status(200).json({token})
+            return res.status(200).json({message: "usuario creado exitosamente"})
         }
     } catch (err){
         console.log(err);
@@ -39,9 +42,9 @@ export const login = async (req, res) => {
         const { email, password } = req.body
 
         // si no se ingresa el email o password
-        if (!email || !password)
+        if (!!!email || !!!password)
         {
-            return res.json({message: "campos vacios"});
+            return res.status(400).json({message: "existen campos vacios"});
         } else {
             // encontrar coincidencias con el primer registro dado un correo
             const userLogin = await User.findOne({
@@ -50,14 +53,25 @@ export const login = async (req, res) => {
                 }
             })
 
-            // verificar si el usuario existe y si las contraseñas con hash coinciden
-            if (userLogin.length === 0 || ! ( await bcryptjs.compare(password, userLogin.password))){
-                return res.json({message: "no coinciden las credenciales"});
-            } else {
+            // verificar si el usuario existe y
+            if ( userLogin === null ){
+                return res.status(400).json({message: "usuario no encontrado"});
+            }
+            // si las contraseñas con hash coinciden
+            else if (! ( await bcryptjs.compare(password, userLogin.password))){
+                return res.status(400).json({message: "correo o contraseña incorrectos"});
+            }
+            else {
                 // generar json web token para poder mantener su sesión activa
-                const token = jwt.sign({id: userLogin.id}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_TIME,})
 
-                return res.status(200).json({token})
+                const accessToken = createAcccessToken(userLogin);
+                const refreshToken = createRefreshToken(userLogin);
+
+                // actualizar refresh token en la base de datos
+                userLogin.token = refreshToken;
+                await userLogin.save();
+
+                return res.status(200).json({user: getUserInfo(userLogin), accessToken, refreshToken})
             }
         }
     } catch( err ){
@@ -66,7 +80,86 @@ export const login = async (req, res) => {
     }
 
 }
+
+export const refreshToken = async (req, res) => {
+    const refreshToken = getTokenFromHeader(req.headers)
+
+    if (refreshToken){
+        // buscar en bd el token
+        try{
+            const found = await User.findOne({
+                where:{
+                    token: refreshToken,
+                }
+            })
+
+            if(!found){
+                return res.status(401).json({message: "no autorizado"})
+            }
+
+            const payload = verifyRefreshToken(found.token);
+
+
+            if(payload){
+                const accessToken = createAcccessToken(payload)
+
+                return res.status(200).json({accessToken})
+            } else {
+                res.status(401).json({message: "no autorizado"})
+            }
+
+        } catch(err){
+            res.status(401).json({message: "no autorizado"})
+        }
+
+    } else {
+        res.status(401).json({message: "no autorizado"})
+    }
+}
+
+
+export const getUser = async (req, res) => {
+    const refreshToken = getTokenFromHeader(req.headers)
+    if (refreshToken){
+        // buscar en bd el token
+        try {
+            const user = await jwt.verify(refreshToken, process.env.JWT_ACCESS_SECRET)
+
+            if(user){
+                return res.status(200).json(getUserInfo(user))
+            } else {
+                return res.status(400).json("error en token")
+            }
+
+
+        } catch (err){
+            console.log(err)
+            return res.status(400).json("error en token")
+        }
+    }
+
+    return res.status(400).json("sin token")
+}
+
+
 export const logout = async (req, res) => {
-    res.clearCookie('jwt');
-    return res.redirect('/')
+    try{
+        const refreshToken = getTokenFromHeader(req.headers)
+
+        if(refreshToken){
+            const user = await User.findOne({
+                where:{
+                    token: refreshToken,
+                }
+            })
+
+            user.token = null
+            user.save()
+
+            res.status(200).json({message: "token eliminado"})
+        }
+
+    } catch (err) {
+        res.status(500).json({message: "no fue posible eliminar el token"})
+    }
 }

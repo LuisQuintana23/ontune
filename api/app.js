@@ -1,6 +1,7 @@
 import express from 'express'
 import 'dotenv/config';
 import db from './database/db.js'
+import cors from 'cors'
 
 import userRoutes from './routes/user.routes.js'
 import authRoutes from "./routes/auth.routes.js";
@@ -13,12 +14,17 @@ const app = express()
 
 // importar configuración de package json como version y descripción
 app.set('pkg', pkg)
+
 // mostrar logs de consultas HTTP
 app.use(morgan('dev'))
 
 app.use(express.urlencoded({extended:true}))
+
+// comunicar con otros servicios (front)
+app.use(cors({origin: '*'}))
 app.use(express.json())
-app.use(cookieParser());
+
+app.use(cookieParser())
 
 // limpiar cache
 app.use((req, res, next) => {
@@ -48,7 +54,6 @@ app.get('/', (req, res) => {
         name: app.get('pkg').name,
         description: app.get('pkg').description,
         version: app.get('pkg').version
-
     })
 })
 

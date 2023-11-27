@@ -27,7 +27,7 @@
     cp ./.env.example ./.env
     ```
 
-__Nota__: Configurar .env y asignar valor a `JWT_SECRET`
+__Nota__: Configurar .env y asignar valor a `JWT_ACCESS_SECRET` y `JWT_REFRESH_SECRET`
 
 5. Crear base de datos
      ```sh

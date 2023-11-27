@@ -11,10 +11,10 @@ import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
 import { useContext } from "react";
-import { AuthContext } from "../../../context/authContext";
+import { useAuth } from "../../../context/authContext";
 
 const LeftBar = () => {
-    const {currentUser} = useContext(AuthContext);
+    const {currentUser} = useAuth()
     return (
         <div className="leftbar">
             <div className="container">

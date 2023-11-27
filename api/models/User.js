@@ -5,7 +5,8 @@ import {DataTypes} from "sequelize";
 
 const User = db.define('user',{
     id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         autoIncrement: true,
         primaryKey: true
     },
@@ -14,6 +15,7 @@ const User = db.define('user',{
         type:DataTypes.STRING,
     },
     password:{type:DataTypes.STRING},
+    token:{type:DataTypes.STRING}
 },
 {
     // cambiar a snake case

@@ -1,39 +1,127 @@
-import { createContext, useEffect, useState } from "react";
+import {createContext, useContext, useEffect, useState} from "react";
+import axios from "axios";
+import {API_URL} from "../config/config.js";
 
-export const AuthContext = createContext();
+
+const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
-
-  const login = () => {
-    //Parte en la que es necesaria la configuración de Backend
-    setCurrentUser({
-      id: 1,
-      name: "Usuario_5",
-      profilePic:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgBVhb_zZI2S4rt98hZp4i8bAgD3XE06_CAw&usqp=CAU",
-    });
-  };
-
-  //esta parte del código provoca que el usuario se establece automáticamente al cargar la aplicación mediante la llamada a login() dentro de useEffect en el AuthContextProvider. Esto significa que cada vez que el componente se monta o actualiza, el usuario se establecerá automáticamente, y es por eso que siempre te redirige al login.
-  /* useEffect(() => {
-     localStorage.setItem("user", JSON.stringify(currentUser));
-   }, [currentUser]); */
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accessToken, setAccessToken] = useState("");
+  const [refreshToken, setRefreshToken] = useState("");
+  const [user, setUser] = useState();
 
   useEffect(() => {
-    // Establecer el usuario solo si no hay un usuario actual en el localStorage
-    if (!localStorage.getItem("user")) {
-      login();
+    checkAuth()
+  }, [])
+
+
+  async function requestNewAccessToken(refreshToken){
+    try {
+      const res = await axios({
+        url: `${API_URL}/auth/refresh-token`,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${refreshToken}`
+        }
+      })
+
+      if (res.status === 200) {
+        return res.data.accessToken;
+      } else {
+        throw new Error(res.statusText)
+      }
+    } catch(err) {
+      console.log(err)
+      return null;
     }
-  }, []);
+  }
 
+ async function getUserInfo(token) {
+   try {
+     const res = await axios({
+       url: `${API_URL}/auth/user`,
+       method: 'GET',
+       headers: {
+         Authorization: `Bearer ${token}`
+       }
+     })
 
+     console.log(res)
+
+     if (res.status === 200) {
+       return res.data;
+     } else {
+       throw new Error(res.statusText)
+     }
+   } catch(err) {
+     console.log(err)
+     return null;
+   }
+ }
+
+  async function checkAuth(){
+    // ya existe usuario autenticado
+    if(accessToken)
+    {
+      setIsAuthenticated(true)
+    }
+    // usuario no autenticado
+    else {
+      const token = getRefreshToken()
+      if (token){
+        const newAccessToken = await requestNewAccessToken(token);
+        if(newAccessToken){
+          const userInfo = await getUserInfo(newAccessToken);
+          if(userInfo){
+            saveSessionInfo(userInfo, newAccessToken, token)
+          }
+        }
+      }
+    }
+  }
+
+  function saveSessionInfo(userInfo, accessToken, refreshToken){
+    setUser(userInfo)
+    setAccessToken(accessToken)
+    localStorage.setItem("token", JSON.stringify(refreshToken))
+    setIsAuthenticated(true)
+  }
+
+  function getAccessToken() {
+    return accessToken;
+  }
+
+  function getRefreshToken() {
+    const tokenData =  localStorage.getItem('token')
+    if (tokenData){
+      const token = JSON.parse(tokenData)
+      return token
+    }
+
+    return null
+  }
+
+  function saveUser(userData){
+    saveSessionInfo(userData.data.user, userData.data.accessToken, userData.data.refreshToken)
+  }
+
+  function getUser(){
+    return user;
+  }
+
+  function logout(){
+    setIsAuthenticated(false)
+    setAccessToken("")
+    setUser(undefined)
+    localStorage.removeItem("token")
+  }
 
   return (
-    <AuthContext.Provider value={{ currentUser, login }}>
+    <AuthContext.Provider value={{ isAuthenticated, getAccessToken, saveUser, getRefreshToken, getUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);
