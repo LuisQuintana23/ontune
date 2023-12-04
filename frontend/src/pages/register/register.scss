@@ -1,0 +1,86 @@
+.register {
+    height: 100vh;
+    background-color: #051416;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+        .card {
+            width: 50%;
+            display: flex;
+            background-color: #155f6b;
+            border-radius: 10px;
+            min-height: 600px;
+            overflow: hidden;
+            flex-direction: row;
+            .left {
+                flex: 1;
+                background: linear-gradient(rgba(11, 69, 96, 0.5), rgba(11, 31, 95, 0.5)), url("https://images.pexels.com/photos/2105038/pexels-photo-2105038.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1") center;
+                background-size: cover;
+                padding: 50px;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+                color: white;
+                h1 {
+                    font-size: 100px;
+                    line-height: 100px;
+                }
+                span{
+                    font-size: 14px;
+                }
+                button{
+                    width: 50%;
+                    padding: 10px;
+                    border: none;
+                    background-color: wheat;
+                    color: #052419;
+                    font-weight: bold;
+                    cursor: pointer;
+                    border-radius: 20px;
+                    &:hover {
+                        background-color: #50c9db;
+                        color: #051416;
+                      }
+                }
+            }
+    
+            .right {
+                flex: 1;
+                padding: 50px;
+                display: flex;
+                flex-direction: column;
+                gap: 50px;
+                justify-content: center;
+                h1{
+                    color: #c4c2c2;
+                    align-items: center;
+                }
+                form{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 30px;
+                    input {
+                        border: none;
+                        border-bottom: 1px solid lightgray;
+                        padding: 20px 10px;
+                        border-radius: 20px;
+                    }
+                    button {
+                        align-items: center;
+                        width: 50%;
+                        padding: 10px;
+                        border: none;
+                        background-color: #093425;
+                        color: white;
+                        font-weight: bold;
+                        cursor: pointer;
+                        border-radius: 20px;
+                        &:hover {
+                            background-color: #50c9db;
+                            color: #051416;
+                          }
+                    }
+                }
+            }
+        }
+    }

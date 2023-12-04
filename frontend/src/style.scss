@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&family=Poppins:wght@100;300&display=swap');
+
+
+html, body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+
+  h1, h2, h3, p {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+$themes: (
+  light: (
+    textColor: #000,
+    bg: white,
+    logo: #093425,
+    bgSoft: #15606b3b,
+    textColorSoft: #67cddd,
+    border: #55c3d4,
+    textColorh: #0f2427,
+  ),
+  dark: (
+    textColor: whitesmoke,
+    bg: rgb(7, 15, 14),
+    logo: #546f74,
+    bgSoft: rgb(0, 8, 8),
+    textColorSoft: #2398aa,
+    border: #155f6b,
+    textColorh: #55c3d4,
+  ),
+);
+
+@mixin themify($themes) {
+  @each $theme, $map in $themes {
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), "#{$key}");
+        $theme-map: map-merge(
+          $theme-map,
+          (
+            $key: $value,
+          )
+        ) !global;
+      }
+      @content;
+      $theme-map: null !global;
+    }
+  }
+}
+
+@function themed($key) {
+  @return map-get($theme-map, $key);
+}
+
+
+@mixin mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 960px) {
+    @content;
+  }
+}
